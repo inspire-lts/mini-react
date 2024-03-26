@@ -6,7 +6,7 @@ settings:
 
 devDependencies:
   vite:
-    specifier: ^5.2.0
+    specifier: ^5.0.8
     version: 5.2.4
 
 packages:
