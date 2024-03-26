@@ -23,24 +23,40 @@ const createTextNode = (nodeValue) => ({
 });
 
 function render(el, container) {
-  newWorkOfUnit = {
+  nextWorkOfUnit = {
     dom: container,
     props: {
       children: [el],
     },
   };
+  root = nextWorkOfUnit;
 }
-
-let newWorkOfUnit = null;
+let root = null;
+let nextWorkOfUnit = null;
 function workLoop(deadline) {
   let showYield = false;
 
-  while (!showYield && newWorkOfUnit) {
-    newWorkOfUnit = performWorkOfUnit(newWorkOfUnit);
+  while (!showYield && nextWorkOfUnit) {
+    nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit);
     showYield = deadline.timeRemaining() < 1;
   }
 
+  if (!nextWorkOfUnit && root) {
+    commitRoot();
+  }
   requestIdleCallback(workLoop);
+}
+
+function commitRoot() {
+  commitWork(root.child);
+  root = null;
+}
+
+function commitWork(fiber) {
+  if (!fiber) return;
+  fiber.parent.dom.append(fiber.dom);
+  commitWork(fiber.child);
+  commitWork(fiber.sibling);
 }
 
 function updateProps(dom, props) {
@@ -80,8 +96,6 @@ function initChild(fiber) {
 function performWorkOfUnit(fiber) {
   if (!fiber.dom) {
     const dom = (fiber.dom = createDom(fiber.type));
-
-    fiber.parent.dom.append(dom);
 
     updateProps(dom, fiber.props);
   }
